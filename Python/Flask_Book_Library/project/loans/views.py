@@ -56,6 +56,12 @@ def create_loan():
         loan_date = form.loan_date.data
         return_date = form.return_date.data
 
+        # Check if the customer exists (customer_name nie może być dowolnym tekstem)
+        customer = Customer.query.filter_by(name=customer_name).first()
+        if not customer:
+            print('Error. Customer not found.')
+            return jsonify({'error': 'Customer not found.'}), 400
+
         # Check if the book is available
         book = Book.query.filter_by(name=book_name, status='available').first()
         if not book:
@@ -85,6 +91,11 @@ def create_loan():
 
             # Redirect to the list of loans
             return redirect(url_for('loans.list_loans'))
+        except ValueError as e:
+            # Niepoprawne dane odrzucone przez walidację w modelu
+            db.session.rollback()
+            print('Invalid loan data')
+            return jsonify({'error': str(e)}), 400
         except Exception as e:
             db.session.rollback()
             error_message = f'Error creating loan: {str(e)}'
