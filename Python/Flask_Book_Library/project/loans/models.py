@@ -1,4 +1,7 @@
+from sqlalchemy.orm import validates
 from project import db , app
+from project.books.validators import validate_name as validate_book_name
+from project.customers.validators import validate_customer_name
 
 
 # Loan model
@@ -22,6 +25,16 @@ class Loan(db.Model):
         self.original_author = original_author
         self.original_year_published = original_year_published
         self.original_book_type = original_book_type
+
+    # Walidacja na poziomie modelu: wypożyczenie przyjmuje tylko poprawne nazwy
+    # klienta i książki (te same reguły co w modelach Customer i Book).
+    @validates('customer_name')
+    def _validate_customer_name(self, key, value):
+        return validate_customer_name(value)
+
+    @validates('book_name')
+    def _validate_book_name(self, key, value):
+        return validate_book_name(value)
 
     def __repr__(self):
         return f"Customer: {self.customer_name}, Book: {self.book_name}, Loan Date: {self.loan_date}, Return Date: {self.return_date}"
